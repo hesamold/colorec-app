@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
   build:
@@ -16,15 +13,22 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up JDK
-      uses: actions/setup-java@v3
+    - name: Set up Python
+      uses: actions/setup-python@v3
       with:
-        java-version: '11'
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y python3-pip
+        pip install --upgrade pip
+        pip install buildozer
+        sudo apt-get install -y openjdk-8-jdk
+        sudo apt-get install -y unzip wget
 
     - name: Install Android SDK and NDK
       run: |
-        sudo apt update
-        sudo apt install -y unzip wget
         mkdir -p $HOME/android-sdk
         cd $HOME/android-sdk
         wget https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
@@ -33,8 +37,6 @@ jobs:
         $HOME/android-sdk/cmdline-tools/bin/sdkmanager --update
         $HOME/android-sdk/cmdline-tools/bin/sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3" "ndk;21.4.7075529"
 
-    - name: Build the app
+    - name: Build Android APK using Buildozer
       run: |
-        # Your build command here
-        # For example, build using buildozer, gradle, etc.
-        ./gradlew build
+        buildozer android debug deploy run
